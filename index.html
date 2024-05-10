@@ -15,6 +15,7 @@
 			section {
 				width: 100%;
 				height: 100%;
+				position: relative;
 			}
 			video {
 				width: 100%;
@@ -52,6 +53,11 @@
 			<span id="txtSubtitles">[Subtitles will Appear Here]</span>
 		</section>
 		<script type="text/javascript">
+			// Author: Myles Vanevery
+			// Date: 2024-05-10
+			// License: MIT
+			// Description: This script will display subtitles on a video element based on the time codes in the txtSubtitlesCode textarea.
+
 			var subtitles = document.getElementById('txtSubtitles');
 			var video = document.getElementById('target_video');
 			var lastUpdate = new Date();
