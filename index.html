@@ -1,0 +1,175 @@
+<html>
+
+	<head>
+		<title>jsSubtitles</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			section {
+				width: 100%;
+				height: 100%;
+			}
+			video {
+				width: 100%;
+				height: 100%;
+			}
+			#txtSubtitles {
+				position: absolute;
+				bottom: 50%;
+				left: 0;
+				width: 100%;
+				transform: translateY(50%);
+				color: white;
+				font-size: 24px;
+				text-align: center;
+				padding: 10px;
+				text-shadow: 2px 2px 6px black;
+				font-family: "Montserrat", sans-serif;
+				font-size: 6rem;
+				font-weight: 600;
+			}
+		</style>
+	</head>
+
+	<body>
+		<textarea id="txtSubtitlesCode">
+			[00:00][/00:00]
+			[00:02]Two seconds later[/00:04]
+			[00:05]Five seconds later[/00:10]
+		</textarea>
+		<section>
+			<video id="target_video" autplay loop>
+				<source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+				Your browser does not support the video tag.
+			</video>
+			<span id="txtSubtitles">[Subtitles will Appear Here]</span>
+		</section>
+		<script type="text/javascript">
+			var subtitles = document.getElementById('txtSubtitles');
+			var video = document.getElementById('target_video');
+			var lastUpdate = new Date();
+			var subs = [];
+			var subIndex = 0;
+			var lastVideoTime = -1;
+
+			const handleRequestAnimationFrame = () =>
+			{
+				var now = new Date();
+				var delta = new Date() - lastUpdate;
+
+				if (video.currentTime < lastVideoTime)
+				{
+					subIndex = 0;
+				}
+
+				if (subs.length > subIndex && subIndex >= 0)
+				{
+					var sub = subs[subIndex];
+					if (video.currentTime >= sub.start && video.currentTime <= sub.end)
+					{
+						if (subtitles.innerText !== sub.text)
+						{
+							subtitles.innerText = sub.text;
+						}
+					}
+					else if (video.currentTime > sub.end)
+					{
+						subIndex++;
+					}
+					else if (subtitles.innerText !== '')
+					{
+						subtitles.innerText = '';
+					}
+				}
+				lastUpdate = new Date();
+				lastVideoTime = video.currentTime;
+				requestAnimationFrame(handleRequestAnimationFrame);
+			};
+
+			const getsubtitleCodes = () =>
+			{
+				var txtSubtitlesCode = document.getElementById('txtSubtitlesCode').value;
+				var subtitleCodes = [];
+				var lines = txtSubtitlesCode.split('\n');
+				for (var i = 0; i < lines.length; i++)
+				{
+					lines[i] = lines[i].trim();
+					var line = lines[i];
+					if (line.length < 1)
+					{
+						continue;
+					}
+					var start = line.indexOf('[');
+					var end = line.indexOf(']');
+					if (start < 0 || end < 0)
+					{
+						continue;
+					}
+					var timeStart = line.substring(start + 1, end);
+					var timeStartParts = timeStart.split(':');
+					var timeStartSeconds = 0;
+					if (timeStartParts.length === 2)
+					{
+						timeStartSeconds = parseInt(timeStartParts[0]) * 60 + parseInt(timeStartParts[1]);
+					}
+					else if (timeStartParts.length === 3)
+					{
+						timeStartSeconds = parseInt(timeStartParts[0]) * 3600 + parseInt(timeStartParts[1]) * 60 + parseInt(timeStartParts[2]);
+					}
+					else
+					{
+						continue;
+					}
+					var startText = end;
+					start = line.indexOf('[', end);
+					if (start >= 0)
+					{
+						start = line.indexOf("/", start);
+					}
+					end = line.indexOf(']', start);
+					if (start < 0 || end < 0)
+					{
+						continue;
+					}
+					var timeEnd = line.substring(start + 1, end);
+					var timeEndParts = timeEnd.split(':');
+					var timeEndSeconds = 0;
+					if (timeEndParts.length === 2)
+					{
+						timeEndSeconds = parseInt(timeEndParts[0]) * 60 + parseInt(timeEndParts[1]);
+					}
+					else if (timeEndParts.length === 3)
+					{
+						timeEndSeconds = parseInt(timeEndParts[0]) * 3600 + parseInt(timeEndParts[1]) * 60 + parseInt(timeEndParts[2]);
+					}
+					else
+					{
+						continue;
+					}
+					var endText = start;
+					var text = line.substring(startText + 1, endText - 1);
+					subtitleCodes.push({start: timeStartSeconds, end: timeEndSeconds, text: text});
+				}
+				return subtitleCodes;
+			};
+
+			function setup()
+			{
+				subs = getsubtitleCodes();
+				video.volume = 0;
+				video.play();
+				handleRequestAnimationFrame();
+			}
+
+			setup();
+		</script>
+	</body>
+
+</html>
